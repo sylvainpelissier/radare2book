@@ -11,8 +11,8 @@ r -10 @ 33  ; strip 10 bytes at offset 33
 Write bytes using the `w` command. It accepts multiple input formats like inline assembly, endian-friendly dwords, files, hexpair files, wide strings:
 
 ```
-[0x00404888]> w?
-Usage: w[x] [str] [<file] [<<EOF] [@addr]  
+w?
+Usage: w[x] [str] [<file] [<<EOF] [@addr]
 | w[1248][+-][n]       increment/decrement byte,word..
 | w foobar             write string 'foobar'
 | w0 [len]             write 'len' bytes with value 0x00
@@ -24,8 +24,7 @@ Usage: w[x] [str] [<file] [<<EOF] [@addr]
 | wA[?] r 0            alter/modify opcode at current seek (see wA?)
 | wb 010203            fill current block with cyclic hexpairs
 | wB[-]0xVALUE         set or unset bits with given value
-| wc                   list all write changes
-| wc[?][jir+-*?]       write cache undo/commit/reset/list (io.cache)
+| wc[?][jir+-*?]       write cache list/undo/commit/reset (io.cache)
 | wd [off] [n]         duplicate N bytes from offset at current seek (memcpy) (see y?)
 | we[?] [nNsxX] [arg]  extend write operations (insert instead of replace)
 | wf[fs] -|file        write contents of file at current offset
@@ -35,8 +34,7 @@ Usage: w[x] [str] [<file] [<<EOF] [@addr]
 | wp[?] -|file         apply radare patch file. See wp? fmi
 | wr 10                write 10 random bytes
 | ws pstring           write 1 byte for length and then the string
-| wt[f][?] file [sz]   write to file (from current seek, blocksize or sz bytes)
-| wts host:port [sz]   send data to remote host:port via tcp://
+| wt[?] file [sz]      write to file (from current seek, blocksize or sz bytes)
 | ww foobar            write wide string 'f\x00o\x00o\x00b\x00a\x00r\x00'
 | wx[?][fs] 9090       write two intel nops (from wxfile or wxseek)
 | wv[?] eip+34         write 32-64 bit value honoring cfg.bigendian
@@ -57,31 +55,31 @@ The `wo` command (write over) has many subcommands, each combines the existing d
 an operator. The command is applied to the current block. Supported operators include XOR, ADD, SUB...
 
 ```
-[0x4A13B8C0]> wo?
-|Usage: wo[asmdxoArl24] [hexpairs] @ addr[:bsize]
-|Example:
-|  wox 0x90   ; xor cur block with 0x90
-|  wox 90     ; xor cur block with 0x90
-|  wox 0x0203 ; xor cur block with 0203
-|  woa 02 03  ; add [0203][0203][...] to curblk
-|  woe 02 03  ; create sequence from 2 to 255 with step 3
-|Supported operations:
-|  wow  ==  write looped value (alias for 'wb')
-|  woa  +=  addition
-|  wos  -=  substraction
-|  wom  *=  multiply
-|  wod  /=  divide
-|  wox  ^=  xor
-|  woo  |=  or
-|  woA  &=  and
-|  woR  random bytes (alias for 'wr $b'
-|  wor  >>= shift right
-|  wol  <<= shift left
-|  wo2  2=  2 byte endian swap
-|  wo4  4=  4 byte endian swap
+[0x000003fc]> wo?
+Usage: wo[asmdxoArl24]   [hexpairs] @ addr[!bsize]
+| wo[24aAdlmorwx]               without hexpair values, clipboard is used
+| wo2 [val]                     2=  2 byte endian swap (word)
+| wo4 [val]                     4=  4 byte endian swap (dword)
+| wo8 [val]                     8=  8 byte endian swap (qword)
+| woa [val]                     +=  addition (f.ex: woa 0102)
+| woA [val]                     &=  and
+| wod [val]                     /=  divide
+| woD[algo] [key] [IV]          decrypt current block with given algo and key
+| woe [from to] [step] [wsz=1]  ..  create sequence
+| woE [algo] [key] [IV]         encrypt current block with given algo and key
+| woi                           inverse bytes in current block
+| wol [val]                     <<= shift left
+| wom [val]                     *=  multiply
+| woo [val]                     |=  or
+| wop[DO] [arg]                 De Bruijn Patterns
+| wor [val]                     >>= shift right
+| woR                           random bytes (alias for 'wr $b')
+| wos [val]                     -=  substraction
+| wow [val]                     ==  write looped value (alias for 'wb')
+| wox [val]                     ^=  xor  (f.ex: wox 0x90)
 ```
 
-It is possible to implement cipher-algorithms using radare core primitives and `wo`. A sample session performing xor(90) + add(01, 02):
+It is possible to implement basic algorithms using radare core primitives and `wo`. A sample session performing xor(90) + add(01, 02):
 
 ```
 [0x7fcd6a891630]> px
@@ -104,4 +102,20 @@ It is possible to implement cipher-algorithms using radare core primitives and `
 0x7fcd6a891640  91de 1a7e d91f 96db 14d9 9593 1401 9593
 0x7fcd6a891650  c4da 1a6d e89a d959 9192 9159 1cb1 d959
 0x7fcd6a891660  9192 79cb 81da 1652 81da 1456 a252 7c77
+```
+
+Is is also possible to decrypt data and write it over the previous encrypted data. The full list of supported algorithms is given by `woE?`. The first parameter is the key and the second the IV:
+```
+[0x00000000]> b 32
+[0x00000000]> px
+- offset -   0 1  2 3  4 5  6 7  8 9  A B  C D  E F  0123456789ABCDEF
+0x00000000  66d8 184d e86e 0085 d56c 9afa 1cc9 e659  f..M.n...l.....Y
+0x00000010  dbd4 0456 1106 9cc3 02da 5e7b e43d 01a8  ...V......^{.=..
+[0x00000000]> woD aes-cbc 00112233445566778899aabbccddeeff 000102030405060708090a0b0c0d0e0f
+Written 32 byte(s)
+[0x00000000]> px
+- offset -   0 1  2 3  4 5  6 7  8 9  A B  C D  E F  0123456789ABCDEF
+0x00000000  4865 6c6c 6f20 776f 726c 6420 2100 0000  Hello world !...
+0x00000010  0000 0000 0000 0000 0000 0000 0000 0000  ................
+[0x00000000]> 
 ```
