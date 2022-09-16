@@ -2971,7 +2971,7 @@ hits: 1
 0x004048e7 hit3_0 ffe00f1f8000000000b8
 </code></pre>
 <h2><a class="header" href="#searching-for-cryptography-materials" id="searching-for-cryptography-materials">Searching for Cryptography materials</a></h2>
-<h3><a class="header" href="#searching-aes-keys" id="searching-aes-keys">Searching AES keys</a></h3>
+<h3><a class="header" href="#searching-expanded-keys" id="searching-expanded-keys">Searching expanded keys</a></h3>
 <p>radare2 is capable of finding <strong>expanded</strong> keys with <code>/ca</code> command for AES and SM4 block ciphers. It searches from current seek position up to the <code>search.distance</code> limit, or until end of file is reached. You can interrupt current search by pressing <code>Ctrl-C</code>. For example, to look for AES keys in a memory dump:</p>
 <pre><code>0x00000000]&gt; /ca aes
 Searching 40 bytes in [0x0-0x1ab]
