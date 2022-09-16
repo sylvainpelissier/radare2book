@@ -149,13 +149,13 @@
                     <main>
                         <h2><a class="header" href="#searching-for-cryptography-materials" id="searching-for-cryptography-materials">Searching for Cryptography materials</a></h2>
 <h3><a class="header" href="#searching-aes-keys" id="searching-aes-keys">Searching AES keys</a></h3>
-<p>radare2 is capable of finding <strong>expanded AES</strong> keys with <code>/ca</code> command. It searches from current seek position up to the <code>search.distance</code> limit, or until end of file is reached. You can interrupt current search by pressing <code>Ctrl-C</code>. For example, to look for AES keys in a memory dump:</p>
-<pre><code>0x00000000]&gt; /ca
+<p>radare2 is capable of finding <strong>expanded</strong> keys with <code>/ca</code> command for AES and SM4 block ciphers. It searches from current seek position up to the <code>search.distance</code> limit, or until end of file is reached. You can interrupt current search by pressing <code>Ctrl-C</code>. For example, to look for AES keys in a memory dump:</p>
+<pre><code>0x00000000]&gt; /ca aes
 Searching 40 bytes in [0x0-0x1ab]
 hits: 1
 0x000000fb hit0_0 6920e299a5202a6d656e636869746f2a
 </code></pre>
-<p>The output length gives you the size of the AES key used: 128, 192 or 256 bits. If you are simply looking for plaintext AES keys in your binary, <code>/ca</code> will not find them they must have been expanded by the key expansion algorithm.</p>
+<p>For AES, the output length gives you the size of the AES key used: 128, 192 or 256 bits. If you are simply looking for plaintext AES keys in your binary, <code>/ca</code> will not find them they must have been expanded by the key expansion algorithm.</p>
 <h3><a class="header" href="#searching-private-keys-and-certificates" id="searching-private-keys-and-certificates">Searching private keys and certificates</a></h3>
 <p><code>/cr</code> command implements the search of private keys (RSA and ECC). <code>/cd</code> command implements a similar feature to search certificates.</p>
 <pre><code>[0x00000000]&gt; /cr
